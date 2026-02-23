@@ -179,7 +179,7 @@ fn output_paths(input: &Path, output_dir: Option<&Path>) -> (PathBuf, PathBuf) {
         None => input.parent().unwrap_or(Path::new(".")),
     };
 
-    let tbx = parent.join(format!("{}_tbx.nii.gz", stem));
-    let tbxmask = parent.join(format!("{}_tbxmask.nii.gz", stem));
+    let tbx = parent.join(format!("{}_tbet.nii.gz", stem));
+    let tbxmask = parent.join(format!("{}_tbetmask.nii.gz", stem));
     (tbx, tbxmask)
 }
