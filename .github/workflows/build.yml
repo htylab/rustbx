@@ -1,0 +1,25 @@
+name: Build
+
+on: push
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download ONNX model
+        shell: bash
+        run: |
+          mkdir -p models
+          curl -L -o models/mprage_bet_v005_mixsynthv4.onnx \
+            "https://github.com/htylab/tigerbx/releases/download/modelhub/mprage_bet_v005_mixsynthv4.onnx"
+
+      - name: Build release
+        run: cargo build --release
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rustbx-win-x64
+          path: target/release/rustbx.exe
