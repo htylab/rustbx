@@ -1,7 +1,9 @@
 name: Release
 
 on:
-  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
 
 permissions:
   contents: write
@@ -25,9 +27,9 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v4
 
-      - name: Derive short commit SHA
+      - name: Extract version from tag
         shell: bash
-        run: echo "SHORT_SHA=${GITHUB_SHA::7}" >> "$GITHUB_ENV"
+        run: echo "VERSION=${GITHUB_REF_NAME}" >> "$GITHUB_ENV"
 
       - name: Download ONNX model
         shell: bash
@@ -43,7 +45,7 @@ jobs:
         shell: bash
         run: |
           mkdir out
-          ZIP_NAME="rustbx-${{ runner.os }}-${SHORT_SHA}.zip"
+          ZIP_NAME="rustbx-${VERSION}-${{ runner.os }}-x64.zip"
           if [[ "$RUNNER_OS" == "Windows" ]]; then
             powershell -Command "Compress-Archive -Path target/release/rustbx.exe -DestinationPath out/${ZIP_NAME}"
           else
@@ -77,8 +79,8 @@ jobs:
       - name: Create draft GitHub Release
         uses: ncipollo/release-action@v1
         with:
-          tag: v${{ github.run_number }}
-          name: Release ${{ github.run_number }}
+          tag: ${{ github.ref_name }}
+          name: rustbx ${{ github.ref_name }}
           draft: true
           artifacts: release/rustbx-*.zip
           token: ${{ secrets.GITHUB_TOKEN }}
