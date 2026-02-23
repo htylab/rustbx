@@ -8,23 +8,14 @@ jobs:
       matrix:
         include:
           - os: windows-latest
-            target: x86_64-pc-windows-msvc
             artifact: rustbx-win-x64
-            binary: target/x86_64-pc-windows-msvc/release/rustbx.exe
-          - os: ubuntu-latest
-            target: x86_64-unknown-linux-musl
+            binary: target/release/rustbx.exe
+          - os: ubuntu-22.04
             artifact: rustbx-linux-x64
-            binary: target/x86_64-unknown-linux-musl/release/rustbx
+            binary: target/release/rustbx
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
-
-      - name: Install musl toolchain
-        if: matrix.target == 'x86_64-unknown-linux-musl'
-        run: sudo apt-get update && sudo apt-get install -y musl-tools
-
-      - name: Add Rust target
-        run: rustup target add ${{ matrix.target }}
 
       - name: Download ONNX model
         shell: bash
@@ -34,7 +25,7 @@ jobs:
             "https://github.com/htylab/tigerbx/releases/download/modelhub/mprage_bet_v005_mixsynthv4.onnx"
 
       - name: Build release
-        run: cargo build --release --target ${{ matrix.target }}
+        run: cargo build --release
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
