@@ -10,7 +10,7 @@ jobs:
           - os: windows-latest
             artifact: rustbx-win-x64
             binary: target/release/rustbx.exe
-          - os: ubuntu-22.04
+          - os: ubuntu-24.04
             artifact: rustbx-linux-x64
             binary: target/release/rustbx
     runs-on: ${{ matrix.os }}
