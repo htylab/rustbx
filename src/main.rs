@@ -85,15 +85,11 @@ fn main() -> Result<()> {
 
 /// Process a single NIfTI file through the brain-extraction pipeline.
 fn process_file(input: &Path, output_dir: Option<&Path>, session: &mut ort::session::Session) -> Result<()> {
+    let start = std::time::Instant::now();
     let (tbx_path, tbxmask_path) = output_paths(input, output_dir);
 
     // 1. Read NIfTI
     let (header, data) = nifti_io::read_nifti(input)?;
-    println!(
-        "  Dimensions: {:?}, {} voxels",
-        &header.dim[1..=(header.dim[0] as usize)],
-        data.len()
-    );
 
     // 2. Run brain extraction
     let (mask, brain) = bx::run_bx(&data, session)?;
@@ -105,6 +101,7 @@ fn process_file(input: &Path, output_dir: Option<&Path>, session: &mut ort::sess
     nifti_io::write_nifti_u8(&tbxmask_path, &header, &mask)?;
     println!("  -> {}", tbxmask_path.display());
 
+    println!("  Done in {}s", start.elapsed().as_secs());
     Ok(())
 }
 
@@ -144,14 +141,12 @@ fn expand_inputs(inputs: &[String]) -> Result<Vec<PathBuf>> {
     Ok(files)
 }
 
-/// Recursively scan a directory for .nii and .nii.gz files.
+/// Scan a directory (non-recursive) for .nii and .nii.gz files.
 fn scan_directory(dir: &Path, files: &mut Vec<PathBuf>) -> Result<()> {
     for entry in std::fs::read_dir(dir)? {
         let entry = entry?;
         let path = entry.path();
-        if path.is_dir() {
-            scan_directory(&path, files)?;
-        } else if is_nifti(&path) {
+        if is_nifti(&path) {
             files.push(path);
         }
     }

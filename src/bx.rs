@@ -25,17 +25,13 @@ pub fn run_bx(data: &ArrayD<f32>, session: &mut Session) -> Result<(ArrayD<u8>, 
         data.clone()
     };
 
-    println!("  Normalized max: {:.4}", max_val);
-
     // 2. ONNX inference
-    println!("  Running ONNX inference...");
     let logits_5d = inference::run_onnx(session, &normalized)
         .context("ONNX inference failed")?;
 
     // Output shape is (1, 1, H, W, D) — sigmoid mode
     // Extract the single-channel 3D logits
     let logits_shape: Vec<usize> = logits_5d.shape().to_vec();
-    println!("  Model output shape: {:?}", logits_shape);
 
     let logits_3d = logits_5d
         .into_shape_with_order(IxDyn(&[logits_shape[2], logits_shape[3], logits_shape[4]]))
@@ -46,13 +42,9 @@ pub fn run_bx(data: &ArrayD<f32>, session: &mut Session) -> Result<(ArrayD<u8>, 
 
     // 4. Threshold at 0.5
     let mask = postprocess::threshold_mask(&prob, 0.5);
-    let mask_count: usize = mask.iter().filter(|&&v| v > 0).count();
-    println!("  Mask voxels before cleanup: {}", mask_count);
 
     // 5. Keep largest connected component
     let mask = postprocess::largest_connected_component_3d(&mask);
-    let mask_count: usize = mask.iter().filter(|&&v| v > 0).count();
-    println!("  Mask voxels after cleanup: {}", mask_count);
 
     // 6. Brain extracted = input × mask
     let brain = ndarray::Zip::from(data)
